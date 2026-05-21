@@ -35,6 +35,7 @@ export const GROUPS = {
 };
 
 export const GK = Object.keys(GROUPS);
+export const BUILD_TS = "2026-05-21T23:30Z";
 
 // Map football-data.org TLA codes → our team IDs
 export const TLA_MAP = {
