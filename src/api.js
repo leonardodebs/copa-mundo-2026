@@ -1,9 +1,9 @@
 import { TLA_MAP, GROUPS, initGroupMatches } from './data.js';
 
+// v2 — build com VITE_FOOTBALL_API_KEY injetada
 const API_KEY = import.meta.env.VITE_FOOTBALL_API_KEY;
 const BASE    = 'https://api.football-data.org/v4';
 
-// Status que indicam jogo ao vivo
 const LIVE_STATUSES = new Set(['LIVE','IN_PLAY','PAUSED','HALFTIME','EXTRA_TIME','PENALTY']);
 
 function tlaToId(tla) {
@@ -12,15 +12,10 @@ function tlaToId(tla) {
 }
 
 function groupLetter(apiGroup) {
-  // "GROUP_A" → "A"
   if (!apiGroup) return null;
   return apiGroup.replace(/^GROUP_/,'');
 }
 
-/**
- * Busca todos os jogos da Copa do Mundo 2026.
- * Retorna { groupMatches, error }
- */
 export async function fetchMatches(currentMatches) {
   if (!API_KEY) return { groupMatches: null, error: 'no_key' };
 
@@ -47,9 +42,8 @@ export async function fetchMatches(currentMatches) {
       const isLive = LIVE_STATUSES.has(m.status);
       const isDone = m.status === 'FINISHED';
 
-      // Descobrir qual key usamos (h e a podem estar em qualquer ordem)
       const k1 = `${g}:${[hId,aId].sort()[0]}-${[hId,aId].sort()[1]}`;
-      if (!updated[k1]) return; // jogo não mapeado
+      if (!updated[k1]) return;
 
       const storedHome = updated[k1].h;
       const homeIsHome = storedHome === hId;
