@@ -1,0 +1,122 @@
+export const TEAMS = {
+  mex:{n:"México",        s:"MEX",f:"mx"},   rsa:{n:"África do Sul",  s:"RSA",f:"za"},
+  kor:{n:"Coreia do Sul", s:"KOR",f:"kr"},   cze:{n:"Rep. Tcheca",    s:"CZE",f:"cz"},
+  can:{n:"Canadá",        s:"CAN",f:"ca"},   bih:{n:"Bósnia-Herz.",   s:"BIH",f:"ba"},
+  qat:{n:"Catar",         s:"QAT",f:"qa"},   sui:{n:"Suíça",          s:"SUI",f:"ch"},
+  bra:{n:"Brasil",        s:"BRA",f:"br"},   mar:{n:"Marrocos",       s:"MAR",f:"ma"},
+  hai:{n:"Haiti",         s:"HAI",f:"ht"},   sco:{n:"Escócia",        s:"SCO",f:"gb-sct"},
+  usa:{n:"EUA",           s:"USA",f:"us"},   par:{n:"Paraguai",       s:"PAR",f:"py"},
+  aus:{n:"Austrália",     s:"AUS",f:"au"},   tur:{n:"Turquia",        s:"TUR",f:"tr"},
+  ger:{n:"Alemanha",      s:"GER",f:"de"},   cur:{n:"Curaçao",        s:"CUR",f:"cw"},
+  civ:{n:"C. do Marfim",  s:"CIV",f:"ci"},   ecu:{n:"Equador",        s:"ECU",f:"ec"},
+  ned:{n:"Holanda",       s:"NED",f:"nl"},   jpn:{n:"Japão",          s:"JPN",f:"jp"},
+  swe:{n:"Suécia",        s:"SWE",f:"se"},   tun:{n:"Tunísia",        s:"TUN",f:"tn"},
+  bel:{n:"Bélgica",       s:"BEL",f:"be"},   egy:{n:"Egito",          s:"EGY",f:"eg"},
+  irn:{n:"Irã",           s:"IRN",f:"ir"},   nzl:{n:"Nova Zelândia",  s:"NZL",f:"nz"},
+  esp:{n:"Espanha",       s:"ESP",f:"es"},   cpv:{n:"Cabo Verde",     s:"CPV",f:"cv"},
+  ksa:{n:"Arábia Saudita",s:"KSA",f:"sa"},   uru:{n:"Uruguai",        s:"URU",f:"uy"},
+  fra:{n:"França",        s:"FRA",f:"fr"},   sen:{n:"Senegal",        s:"SEN",f:"sn"},
+  irq:{n:"Iraque",        s:"IRQ",f:"iq"},   nor:{n:"Noruega",        s:"NOR",f:"no"},
+  arg:{n:"Argentina",     s:"ARG",f:"ar"},   alg:{n:"Argélia",        s:"ALG",f:"dz"},
+  aut:{n:"Áustria",       s:"AUT",f:"at"},   jor:{n:"Jordânia",       s:"JOR",f:"jo"},
+  por:{n:"Portugal",      s:"POR",f:"pt"},   cod:{n:"RD Congo",       s:"COD",f:"cd"},
+  uzb:{n:"Uzbequistão",   s:"UZB",f:"uz"},   col:{n:"Colômbia",       s:"COL",f:"co"},
+  eng:{n:"Inglaterra",    s:"ENG",f:"gb-eng"},cro:{n:"Croácia",       s:"CRO",f:"hr"},
+  pan:{n:"Panamá",        s:"PAN",f:"pa"},   gha:{n:"Gana",           s:"GHA",f:"gh"},
+};
+
+export const GROUPS = {
+  A:["mex","rsa","kor","cze"], B:["can","bih","qat","sui"],
+  C:["bra","mar","hai","sco"], D:["usa","par","aus","tur"],
+  E:["ger","cur","civ","ecu"], F:["ned","jpn","swe","tun"],
+  G:["bel","egy","irn","nzl"], H:["esp","cpv","ksa","uru"],
+  I:["fra","sen","irq","nor"], J:["arg","alg","aut","jor"],
+  K:["por","cod","uzb","col"], L:["eng","cro","pan","gha"],
+};
+
+export const GK = Object.keys(GROUPS);
+
+// Map football-data.org TLA codes → our team IDs
+export const TLA_MAP = {
+  MEX:"mex",ZAF:"rsa",KOR:"kor",CZE:"cze",
+  CAN:"can",BIH:"bih",QAT:"qat",SUI:"sui",
+  BRA:"bra",MAR:"mar",HAI:"hai",SCO:"sco",
+  USA:"usa",PAR:"par",AUS:"aus",TUR:"tur",
+  GER:"ger",CUW:"cur",CIV:"civ",ECU:"ecu",
+  NED:"ned",JPN:"jpn",SWE:"swe",TUN:"tun",
+  BEL:"bel",EGY:"egy",IRN:"irn",NZL:"nzl",
+  ESP:"esp",CPV:"cpv",KSA:"ksa",URU:"uru",
+  FRA:"fra",SEN:"sen",IRQ:"irq",NOR:"nor",
+  ARG:"arg",ALG:"alg",AUT:"aut",JOR:"jor",
+  POR:"por",COD:"cod",UZB:"uzb",COL:"col",
+  ENG:"eng",CRO:"cro",PAN:"pan",GHA:"gha",
+  // alternativas possíveis
+  RSA:"rsa",BOH:"bih",NOR:"nor",
+};
+
+export const R32_SRC = [
+  [{g:"A",p:0},{g:"B",p:1}],[{g:"C",p:0},{g:"D",p:1}],
+  [{g:"E",p:0},{g:"F",p:1}],[{g:"G",p:0},{g:"H",p:1}],
+  [{g:"I",p:0},{g:"J",p:1}],[{g:"K",p:0},{g:"L",p:1}],
+  [{g:"B",p:0},{g:"A",p:1}],[{g:"D",p:0},{g:"C",p:1}],
+  [{g:"F",p:0},{g:"E",p:1}],[{g:"H",p:0},{g:"G",p:1}],
+  [{g:"J",p:0},{g:"I",p:1}],[{g:"L",p:0},{g:"K",p:1}],
+  [{lbl:"3º A/C/E"},{lbl:"3º G/I/K"}],
+  [{lbl:"3º B/D/F"},{lbl:"3º H/J/L"}],
+  [{lbl:"3º A/B/C"},{lbl:"3º D/E/F"}],
+  [{lbl:"3º G/H/I"},{lbl:"3º J/K/L"}],
+];
+
+export const KO_ROUNDS = [
+  {id:"r32",    label:"32-avos",      matches:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]},
+  {id:"oitavas",label:"Oitavas",      matches:[16,17,18,19,20,21,22,23]},
+  {id:"quartas",label:"Quartas",      matches:[24,25,26,27]},
+  {id:"semis",  label:"Semifinais",   matches:[28,29]},
+  {id:"final",  label:"Final & 3º",  matches:[31,30]},
+];
+
+export function initGroupMatches() {
+  const all={};
+  Object.entries(GROUPS).forEach(([g,teams])=>{
+    for(let i=0;i<4;i++) for(let j=i+1;j<4;j++){
+      const[a,b]=[teams[i],teams[j]].sort();
+      const id=`${g}:${a}-${b}`;
+      all[id]={id,g,h:teams[i],a:teams[j],hs:null,as:null,status:"SCHEDULED",live:false,date:null};
+    }
+  });
+  return all;
+}
+
+export function calcStandings(g,matches){
+  const st={};
+  GROUPS[g].forEach(t=>st[t]={id:t,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+  Object.values(matches).filter(m=>m.g===g&&m.hs!==null).forEach(({h,a,hs,as})=>{
+    st[h].p++;st[a].p++;
+    st[h].gf+=hs;st[h].ga+=as;
+    st[a].gf+=as;st[a].ga+=hs;
+    if(hs>as){st[h].w++;st[h].pts+=3;st[a].l++;}
+    else if(hs<as){st[a].w++;st[a].pts+=3;st[h].l++;}
+    else{st[h].d++;st[a].d++;st[h].pts++;st[a].pts++;}
+  });
+  return Object.values(st).sort((a,b)=>b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf);
+}
+
+export function getSlotTeam(src,allS){
+  if(!src) return null;
+  if(src.lbl) return src;
+  if(src.g!==undefined){const s=allS[src.g];return s&&s[src.p]?s[src.p].id:null;}
+  return null;
+}
+
+export function getMatchTeams(idx,koW,allS){
+  if(idx<16){const[s0,s1]=R32_SRC[idx];return[getSlotTeam(s0,allS),getSlotTeam(s1,allS)];}
+  if(idx<24){const b=(idx-16)*2;return[koW[b]||null,koW[b+1]||null];}
+  if(idx<28){const b=(idx-24)*2+16;return[koW[b]||null,koW[b+1]||null];}
+  if(idx<30){const b=(idx-28)*2+24;return[koW[b]||null,koW[b+1]||null];}
+  if(idx===30){
+    const[h28,a28]=getMatchTeams(28,koW,allS);
+    const[h29,a29]=getMatchTeams(29,koW,allS);
+    return[koW[28]?(koW[28]===h28?a28:h28):null,koW[29]?(koW[29]===h29?a29:h29):null];
+  }
+  return[koW[28]||null,koW[29]||null];
+}
