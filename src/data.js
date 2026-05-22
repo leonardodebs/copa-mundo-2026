@@ -219,3 +219,45 @@ export function getMatchTeams(idx,koW,allS){
   }
   return[koW[28]||null,koW[29]||null];
 }
+// Calendário oficial mata-mata — datas/locais por posição no bracket
+// índice: 0-15 = 32-avos, 16-23 = Oitavas, 24-27 = Quartas, 28-29 = Semis, 30 = 3º, 31 = Final
+export const KO_SCHEDULE = {
+  // ── 32-AVOS DE FINAL (28/jun – 3/jul) ────────────────────────────────────
+  0:  { d:'28/jun', t:'13h', c:'Dallas'             },
+  1:  { d:'28/jun', t:'17h', c:'Miami'              },
+  2:  { d:'29/jun', t:'13h', c:'Atlanta'            },
+  3:  { d:'29/jun', t:'17h', c:'Seattle'            },
+  4:  { d:'30/jun', t:'13h', c:'Kansas City'        },
+  5:  { d:'30/jun', t:'17h', c:'Los Angeles'        },
+  6:  { d:'1/jul',  t:'13h', c:'Boston'             },
+  7:  { d:'1/jul',  t:'17h', c:'Filadélfia'         },
+  8:  { d:'2/jul',  t:'13h', c:'Houston'            },
+  9:  { d:'2/jul',  t:'17h', c:'Nova York'          },
+  10: { d:'2/jul',  t:'20h', c:'Vancouver'          },
+  11: { d:'3/jul',  t:'13h', c:'Toronto'            },
+  12: { d:'3/jul',  t:'17h', c:'Guadalajara'        },
+  13: { d:'3/jul',  t:'20h', c:'San Francisco'      },
+  14: { d:'3/jul',  t:'22h', c:'Cidade do México'   },
+  15: { d:'3/jul',  t:'22h', c:'Monterrey'          },
+  // ── OITAVAS DE FINAL (4–7/jul) ───────────────────────────────────────────
+  16: { d:'4/jul',  t:'17h', c:'Dallas'             },
+  17: { d:'4/jul',  t:'20h', c:'Miami'              },
+  18: { d:'5/jul',  t:'17h', c:'Los Angeles'        },
+  19: { d:'5/jul',  t:'20h', c:'Seattle'            },
+  20: { d:'6/jul',  t:'17h', c:'Nova York'          },
+  21: { d:'6/jul',  t:'20h', c:'Kansas City'        },
+  22: { d:'7/jul',  t:'17h', c:'Atlanta'            },
+  23: { d:'7/jul',  t:'20h', c:'Houston'            },
+  // ── QUARTAS DE FINAL (8 e 11/jul) ────────────────────────────────────────
+  24: { d:'8/jul',  t:'17h', c:'Los Angeles'        },
+  25: { d:'8/jul',  t:'20h', c:'Nova York'          },
+  26: { d:'11/jul', t:'17h', c:'Seattle'            },
+  27: { d:'11/jul', t:'20h', c:'Miami'              },
+  // ── SEMIFINAIS (14 e 15/jul) ─────────────────────────────────────────────
+  28: { d:'14/jul', t:'20h', c:'Dallas'             },
+  29: { d:'15/jul', t:'20h', c:'Los Angeles'        },
+  // ── 3º LUGAR (18/jul) ────────────────────────────────────────────────────
+  30: { d:'18/jul', t:'16h', c:'Hard Rock Stadium – Miami' },
+  // ── FINAL (19/jul) ───────────────────────────────────────────────────────
+  31: { d:'19/jul', t:'16h', c:'MetLife Stadium – New Jersey' },
+};
