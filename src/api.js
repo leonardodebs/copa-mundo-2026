@@ -1,7 +1,7 @@
-import { TLA_MAP, GROUPS, initGroupMatches } from './data.js';
+import { TLA_MAP, GROUPS } from './data.js';
 
-// v2 — build com VITE_FOOTBALL_API_KEY injetada
-const API_KEY = import.meta.env.VITE_FOOTBALL_API_KEY;
+// API key injetada em build-time via vite.config.js define
+const API_KEY = typeof __FOOTBALL_API_KEY__ !== 'undefined' ? __FOOTBALL_API_KEY__ : (import.meta.env.VITE_FOOTBALL_API_KEY || '');
 const BASE    = 'https://api.football-data.org/v4';
 
 const LIVE_STATUSES = new Set(['LIVE','IN_PLAY','PAUSED','HALFTIME','EXTRA_TIME','PENALTY']);
@@ -34,8 +34,8 @@ export async function fetchMatches(currentMatches) {
       if (m.stage !== 'GROUP_STAGE') return;
 
       const g   = groupLetter(m.group);
-      const hId = tlaToId(m.homeTeam?.tla || m.homeTeam?.shortName);
-      const aId = tlaToId(m.awayTeam?.tla || m.awayTeam?.shortName);
+      const hId = tlaToId(m.homeTeam?.tla);
+      const aId = tlaToId(m.awayTeam?.tla);
       if (!g || !hId || !aId) return;
 
       const score  = m.score;
@@ -50,8 +50,8 @@ export async function fetchMatches(currentMatches) {
 
       updated[k1] = {
         ...updated[k1],
-        hs: isDone||isLive ? (homeIsHome ? score?.fullTime?.home ?? score?.currentScore?.home : score?.fullTime?.away ?? score?.currentScore?.away) : null,
-        as: isDone||isLive ? (homeIsHome ? score?.fullTime?.away ?? score?.currentScore?.away : score?.fullTime?.home ?? score?.currentScore?.home) : null,
+        hs: isDone||isLive ? (homeIsHome ? score?.fullTime?.home : score?.fullTime?.away) : null,
+        as: isDone||isLive ? (homeIsHome ? score?.fullTime?.away : score?.fullTime?.home) : null,
         status : m.status,
         live   : isLive,
         date   : m.utcDate,
