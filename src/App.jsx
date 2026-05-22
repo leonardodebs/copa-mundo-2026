@@ -230,8 +230,11 @@ export default function App() {
                       <Flag code={h.f} size="sm"/>
                       <span>{h.s}</span>
                     </div>
-                    <div className={`mscore${done?(m.live?' live':' done'):''}`}>
-                      {done ? `${m.hs} – ${m.as}` : (m.date ? fmtDate(m.date) : '– : –')}
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,flexShrink:0}}>
+                      <div className={`mscore${done?(m.live?' live':' done'):''}`}>
+                        {done ? `${m.hs} – ${m.as}` : (m.date ? fmtDate(m.date) : '– : –')}
+                      </div>
+                      {m.city && <div style={{fontSize:10,color:'#2a4a68',letterSpacing:'0.3px',textAlign:'center',maxWidth:100,overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>📍 {m.city}</div>}
                     </div>
                     <div className="mteam r">
                       <span>{a.s}</span>
