@@ -33,11 +33,99 @@ export const GROUPS = {
   I:["fra","sen","irq","nor"], J:["arg","alg","aut","jor"],
   K:["por","cod","uzb","col"], L:["eng","cro","pan","gha"],
 };
-
 export const GK = Object.keys(GROUPS);
-export const BUILD_TS = "2026-05-21T23:30Z";
+export const BUILD_TS = "2026-05-22T00:00Z";
 
-// Map football-data.org TLA codes → our team IDs
+// Calendário oficial FIFA — horários em UTC (BRT = UTC-3)
+// Fonte: FIFA / Trivela (maio 2026)
+export const SCHEDULE = {
+  // ── GRUPO A ──────────────────────────────────────────
+  'A:mex-rsa': { d:'2026-06-11T19:00:00Z', c:'Cidade do México' }, // 16h BRT
+  'A:cze-kor': { d:'2026-06-12T02:00:00Z', c:'Guadalajara'       }, // 23h BRT 11/06
+  'A:cze-rsa': { d:'2026-06-18T16:00:00Z', c:'Atlanta'           }, // 13h BRT
+  'A:kor-mex': { d:'2026-06-19T01:00:00Z', c:'Guadalajara'       }, // 22h BRT 18/06
+  'A:cze-mex': { d:'2026-06-25T01:00:00Z', c:'Cidade do México'  }, // 22h BRT 24/06
+  'A:kor-rsa': { d:'2026-06-25T01:00:00Z', c:'Monterrey'         }, // 22h BRT 24/06
+  // ── GRUPO B ──────────────────────────────────────────
+  'B:bih-can': { d:'2026-06-12T19:00:00Z', c:'Toronto'           }, // 16h BRT
+  'B:qat-sui': { d:'2026-06-13T19:00:00Z', c:'São Francisco'     }, // 16h BRT
+  'B:bih-sui': { d:'2026-06-18T19:00:00Z', c:'Los Angeles'       }, // 16h BRT
+  'B:can-qat': { d:'2026-06-18T22:00:00Z', c:'Vancouver'         }, // 19h BRT
+  'B:can-sui': { d:'2026-06-24T19:00:00Z', c:'Vancouver'         }, // 16h BRT
+  'B:bih-qat': { d:'2026-06-24T19:00:00Z', c:'Seattle'           }, // 16h BRT
+  // ── GRUPO C ──────────────────────────────────────────
+  'C:bra-mar': { d:'2026-06-13T22:00:00Z', c:'Nova York'         }, // 19h BRT
+  'C:hai-sco': { d:'2026-06-14T01:00:00Z', c:'Boston'            }, // 22h BRT 13/06
+  'C:mar-sco': { d:'2026-06-19T22:00:00Z', c:'Boston'            }, // 19h BRT
+  'C:bra-hai': { d:'2026-06-20T01:00:00Z', c:'Filadélfia'        }, // 22h BRT 19/06
+  'C:bra-sco': { d:'2026-06-24T22:00:00Z', c:'Miami'             }, // 19h BRT
+  'C:hai-mar': { d:'2026-06-24T22:00:00Z', c:'Atlanta'           }, // 19h BRT
+  // ── GRUPO D ──────────────────────────────────────────
+  'D:par-usa': { d:'2026-06-13T01:00:00Z', c:'Los Angeles'       }, // 22h BRT 12/06
+  'D:aus-tur': { d:'2026-06-13T04:00:00Z', c:'Vancouver'         }, // 01h BRT
+  'D:par-tur': { d:'2026-06-19T04:00:00Z', c:'São Francisco'     }, // 01h BRT
+  'D:aus-usa': { d:'2026-06-19T19:00:00Z', c:'Seattle'           }, // 16h BRT
+  'D:tur-usa': { d:'2026-06-25T19:00:00Z', c:'Dallas'            }, // 16h BRT
+  'D:aus-par': { d:'2026-06-25T19:00:00Z', c:'Kansas City'       }, // 16h BRT
+  // ── GRUPO E ──────────────────────────────────────────
+  'E:cur-ger': { d:'2026-06-14T17:00:00Z', c:'Houston'           }, // 14h BRT
+  'E:civ-ecu': { d:'2026-06-14T23:00:00Z', c:'Filadélfia'        }, // 20h BRT
+  'E:civ-ger': { d:'2026-06-20T20:00:00Z', c:'Toronto'           }, // 17h BRT
+  'E:cur-ecu': { d:'2026-06-21T00:00:00Z', c:'Kansas City'       }, // 21h BRT 20/06
+  'E:ecu-ger': { d:'2026-06-25T22:00:00Z', c:'Los Angeles'       }, // 19h BRT
+  'E:civ-cur': { d:'2026-06-25T22:00:00Z', c:'Boston'            }, // 19h BRT
+  // ── GRUPO F ──────────────────────────────────────────
+  'F:jpn-ned': { d:'2026-06-14T20:00:00Z', c:'Dallas'            }, // 17h BRT
+  'F:swe-tun': { d:'2026-06-15T02:00:00Z', c:'Monterrey'         }, // 23h BRT 14/06
+  'F:jpn-tun': { d:'2026-06-20T04:00:00Z', c:'Monterrey'         }, // 01h BRT
+  'F:ned-swe': { d:'2026-06-20T17:00:00Z', c:'Houston'           }, // 14h BRT
+  'F:ned-tun': { d:'2026-06-26T01:00:00Z', c:'Miami'             }, // 22h BRT 25/06
+  'F:jpn-swe': { d:'2026-06-26T01:00:00Z', c:'Seattle'           }, // 22h BRT 25/06
+  // ── GRUPO G ──────────────────────────────────────────
+  'G:bel-egy': { d:'2026-06-15T19:00:00Z', c:'Seattle'           }, // 16h BRT
+  'G:irn-nzl': { d:'2026-06-16T01:00:00Z', c:'Los Angeles'       }, // 22h BRT 15/06
+  'G:bel-irn': { d:'2026-06-21T19:00:00Z', c:'Los Angeles'       }, // 16h BRT
+  'G:egy-nzl': { d:'2026-06-22T01:00:00Z', c:'Vancouver'         }, // 22h BRT 21/06
+  'G:bel-nzl': { d:'2026-06-26T19:00:00Z', c:'Houston'           }, // 16h BRT
+  'G:egy-irn': { d:'2026-06-26T19:00:00Z', c:'Dallas'            }, // 16h BRT
+  // ── GRUPO H ──────────────────────────────────────────
+  'H:cpv-esp': { d:'2026-06-15T16:00:00Z', c:'Atlanta'           }, // 13h BRT
+  'H:ksa-uru': { d:'2026-06-15T22:00:00Z', c:'Miami'             }, // 19h BRT
+  'H:esp-ksa': { d:'2026-06-21T16:00:00Z', c:'Atlanta'           }, // 13h BRT
+  'H:cpv-uru': { d:'2026-06-21T22:00:00Z', c:'Miami'             }, // 19h BRT
+  'H:esp-uru': { d:'2026-06-26T22:00:00Z', c:'Nova York'         }, // 19h BRT
+  'H:cpv-ksa': { d:'2026-06-26T22:00:00Z', c:'Los Angeles'       }, // 19h BRT
+  // ── GRUPO I ──────────────────────────────────────────
+  'I:fra-sen': { d:'2026-06-16T19:00:00Z', c:'Nova York'         }, // 16h BRT
+  'I:irq-nor': { d:'2026-06-16T22:00:00Z', c:'Boston'            }, // 19h BRT
+  'I:fra-irq': { d:'2026-06-22T21:00:00Z', c:'Filadélfia'        }, // 18h BRT
+  'I:nor-sen': { d:'2026-06-23T00:00:00Z', c:'Nova York'         }, // 21h BRT 22/06
+  'I:fra-nor': { d:'2026-06-27T16:00:00Z', c:'Kansas City'       }, // 13h BRT
+  'I:irq-sen': { d:'2026-06-27T16:00:00Z', c:'Atlanta'           }, // 13h BRT
+  // ── GRUPO J ──────────────────────────────────────────
+  'J:aut-jor': { d:'2026-06-16T04:00:00Z', c:'São Francisco'     }, // 01h BRT
+  'J:alg-arg': { d:'2026-06-17T01:00:00Z', c:'Kansas City'       }, // 22h BRT 16/06
+  'J:alg-jor': { d:'2026-06-22T03:00:00Z', c:'São Francisco'     }, // 00h BRT 22/06
+  'J:arg-aut': { d:'2026-06-22T17:00:00Z', c:'Dallas'            }, // 14h BRT
+  'J:arg-jor': { d:'2026-06-27T19:00:00Z', c:'Houston'           }, // 16h BRT
+  'J:alg-aut': { d:'2026-06-27T19:00:00Z', c:'San José'          }, // 16h BRT
+  // ── GRUPO K ──────────────────────────────────────────
+  'K:cod-por': { d:'2026-06-17T17:00:00Z', c:'Houston'           }, // 14h BRT
+  'K:col-uzb': { d:'2026-06-18T02:00:00Z', c:'Cidade do México'  }, // 23h BRT 17/06
+  'K:por-uzb': { d:'2026-06-23T17:00:00Z', c:'Houston'           }, // 14h BRT
+  'K:cod-col': { d:'2026-06-24T02:00:00Z', c:'Guadalajara'       }, // 23h BRT 23/06
+  'K:col-por': { d:'2026-06-27T22:00:00Z', c:'Dallas'            }, // 19h BRT
+  'K:cod-uzb': { d:'2026-06-27T22:00:00Z', c:'Toronto'           }, // 19h BRT
+  // ── GRUPO L ──────────────────────────────────────────
+  'L:cro-eng': { d:'2026-06-17T20:00:00Z', c:'Dallas'            }, // 17h BRT
+  'L:gha-pan': { d:'2026-06-17T23:00:00Z', c:'Toronto'           }, // 20h BRT
+  'L:eng-gha': { d:'2026-06-23T20:00:00Z', c:'Boston'            }, // 17h BRT
+  'L:cro-pan': { d:'2026-06-23T23:00:00Z', c:'Toronto'           }, // 20h BRT
+  'L:eng-pan': { d:'2026-06-28T01:00:00Z', c:'Miami'             }, // 22h BRT 27/06
+  'L:cro-gha': { d:'2026-06-28T01:00:00Z', c:'Vancouver'         }, // 22h BRT 27/06
+};
+
+// Map football-data.org TLA → nosso ID
 export const TLA_MAP = {
   MEX:"mex",ZAF:"rsa",KOR:"kor",CZE:"cze",
   CAN:"can",BIH:"bih",QAT:"qat",SUI:"sui",
@@ -51,8 +139,7 @@ export const TLA_MAP = {
   ARG:"arg",ALG:"alg",AUT:"aut",JOR:"jor",
   POR:"por",COD:"cod",UZB:"uzb",COL:"col",
   ENG:"eng",CRO:"cro",PAN:"pan",GHA:"gha",
-  // alternativas possíveis
-  RSA:"rsa",BOH:"bih",NOR:"nor",
+  RSA:"rsa",
 };
 
 export const R32_SRC = [
@@ -69,20 +156,29 @@ export const R32_SRC = [
 ];
 
 export const KO_ROUNDS = [
-  {id:"r32",    label:"32-avos",      matches:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]},
-  {id:"oitavas",label:"Oitavas",      matches:[16,17,18,19,20,21,22,23]},
-  {id:"quartas",label:"Quartas",      matches:[24,25,26,27]},
-  {id:"semis",  label:"Semifinais",   matches:[28,29]},
-  {id:"final",  label:"Final & 3º",  matches:[31,30]},
+  {id:"r32",    label:"32-avos",     matches:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]},
+  {id:"oitavas",label:"Oitavas",     matches:[16,17,18,19,20,21,22,23]},
+  {id:"quartas",label:"Quartas",     matches:[24,25,26,27]},
+  {id:"semis",  label:"Semifinais",  matches:[28,29]},
+  {id:"final",  label:"Final & 3º", matches:[31,30]},
 ];
 
 export function initGroupMatches() {
-  const all={};
-  Object.entries(GROUPS).forEach(([g,teams])=>{
+  const all = {};
+  Object.entries(GROUPS).forEach(([g,teams]) => {
     for(let i=0;i<4;i++) for(let j=i+1;j<4;j++){
-      const[a,b]=[teams[i],teams[j]].sort();
-      const id=`${g}:${a}-${b}`;
-      all[id]={id,g,h:teams[i],a:teams[j],hs:null,as:null,status:"SCHEDULED",live:false,date:null};
+      const [a,b] = [teams[i],teams[j]].sort();
+      const id = `${g}:${a}-${b}`;
+      const sched = SCHEDULE[id] || {};
+      all[id] = {
+        id, g,
+        h: teams[i], a: teams[j],
+        hs: null, as: null,
+        status: 'SCHEDULED',
+        live: false,
+        date: sched.d || null,
+        city: sched.c || null,
+      };
     }
   });
   return all;
@@ -99,7 +195,9 @@ export function calcStandings(g,matches){
     else if(hs<as){st[a].w++;st[a].pts+=3;st[h].l++;}
     else{st[h].d++;st[a].d++;st[h].pts++;st[a].pts++;}
   });
-  return Object.values(st).sort((a,b)=>b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf);
+  return Object.values(st).sort((a,b)=>
+    b.pts-a.pts||((b.gf-b.ga)-(a.gf-a.ga))||b.gf-a.gf
+  );
 }
 
 export function getSlotTeam(src,allS){
