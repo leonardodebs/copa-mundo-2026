@@ -332,6 +332,16 @@ export default function App() {
                 <div className="kochdr">{lbl}</div>
                 <Slot team={home}/>
                 <Slot team={away}/>
+                {KO_SCHEDULE[idx] && (
+                  <div style={{padding:'5px 12px 7px',borderTop:'1px solid #0e2040',
+                    display:'flex',alignItems:'center',gap:6,
+                    fontSize:11,color:'#3a5a78',letterSpacing:'0.5px'}}>
+                    <span>📅</span>
+                    <span style={{color:'#4a6a8a'}}>{KO_SCHEDULE[idx].d}</span>
+                    {KO_SCHEDULE[idx].t && <><span style={{color:'#1e3050'}}>·</span><span style={{color:'#3a5a78'}}>{KO_SCHEDULE[idx].t} BRT</span></>}
+                    {KO_SCHEDULE[idx].c && <><span style={{color:'#1e3050'}}>·</span><span style={{color:'#3a5a78',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{KO_SCHEDULE[idx].c}</span></>}
+                  </div>
+                )}
               </div>
             );
           })}
