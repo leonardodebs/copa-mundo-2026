@@ -220,7 +220,7 @@ export default function App() {
                   </button>
                 )}
               </div>
-              {Object.values(gm).filter(m=>m.g===ag).map(m=>{
+              {Object.values(gm).filter(m=>m.g===ag).sort((a,b)=>!a.date?1:!b.date?-1:new Date(a.date)-new Date(b.date)).map(m=>{
                 const h=TEAMS[m.h], a=TEAMS[m.a], done=m.hs!==null;
                 return(
                   <div key={m.id} className={`mitem${m.live?' live-match':''}`}
