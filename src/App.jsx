@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   TEAMS, GROUPS, GK, KO_ROUNDS, R32_SRC,
   initGroupMatches, calcStandings, getSlotTeam, getMatchTeams,
+  KO_SCHEDULE,
 } from './data.js';
 import { fetchMatches, hasApiKey } from './api.js';
 
@@ -306,7 +307,7 @@ export default function App() {
               `Semifinal ${idx-27}`;
 
             const Slot=({team})=>{
-              const isW=team===winner;
+              const isW=winner!=null&&team===winner;
               const isL=winner&&team!==winner&&team&&typeof team!=='object';
               const isLabel=team&&typeof team==='object'&&team.lbl;
               const td=team&&typeof team==='string'?TEAMS[team]:null;
