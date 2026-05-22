@@ -119,9 +119,9 @@ export default function App() {
           <span className={`dot${apiStatus==='ok'||hasLive?' live':''}`}/>
           {apiStatus==='ok'   && `Atualizado ${lastSync?.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
           {apiStatus==='loading' && 'Atualizando...'}
-          {apiStatus==='error'   && 'Erro na API – dados manuais'}
-          {apiStatus==='no_key'  && 'Modo manual (sem chave de API)'}
-          {apiStatus==='idle'    && 'Carregando...'}
+          {apiStatus==='error'   && 'API indisponível · usando calendário local'}
+          {apiStatus==='no_key'  && 'Sem chave de API · resultados manuais'}
+          {apiStatus==='idle'    && 'Iniciando...'}
           {hasLive && <><LiveDot/><strong style={{color:'#22c55e'}}>AO VIVO</strong></>}
         </div>
       </header>
@@ -129,7 +129,7 @@ export default function App() {
       {/* ── API KEY BANNER ── */}
       {apiStatus==='no_key' && (
         <div className="api-banner">
-          ⚙️ Para resultados automáticos, adicione sua chave gratuita em{' '}
+          ⚙️ Para resultados ao vivo a partir de 11/jun, adicione sua chave gratuita em{' '}
           <a href="https://www.football-data.org/client/register" target="_blank" rel="noreferrer">
             football-data.org
           </a>
