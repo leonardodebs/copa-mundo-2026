@@ -139,7 +139,7 @@ export const TLA_MAP = {
   ARG:"arg",ALG:"alg",AUT:"aut",JOR:"jor",
   POR:"por",COD:"cod",UZB:"uzb",COL:"col",
   ENG:"eng",CRO:"cro",PAN:"pan",GHA:"gha",
-  RSA:"rsa",
+  RSA:"rsa",URY:"uru",CZE:"cze",
 };
 
 export const R32_SRC = [
