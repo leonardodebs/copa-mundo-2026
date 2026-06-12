@@ -71,9 +71,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .q-hint{padding:7px 12px;font-size:10px;color:#2a4060;border-top:1px solid #0e2040;letter-spacing:1px}
 
 /* ── MATCH LIST ── */
-.mitem{display:flex;align-items:center;padding:9px 10px;gap:6px;cursor:pointer;transition:background .14s;border-bottom:1px solid #08121e;position:relative}
+.mitem{display:flex;align-items:center;padding:9px 10px;gap:6px;border-bottom:1px solid #08121e;position:relative}
 .mitem:last-child{border-bottom:none}
-.mitem:hover{background:rgba(240,180,41,.055)}
 .mitem.live-match{background:rgba(34,197,94,.06)}
 .mteam{flex:1;display:flex;align-items:center;gap:6px;font-size:13px;color:#b0c8e0}
 .mteam.r{justify-content:flex-end;text-align:right}
@@ -83,23 +82,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
 .live-badge{position:absolute;top:4px;right:10px;font-size:9px;background:#22c55e;color:#000;border-radius:3px;padding:1px 5px;letter-spacing:1px;font-weight:700}
 
-/* ── MODAL ── */
-.ov{position:fixed;inset:0;background:rgba(2,5,12,.88);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;backdrop-filter:blur(6px)}
-.modal{background:#0a1624;border:1px solid #2a4e78;border-radius:16px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 24px 70px rgba(0,0,0,.7)}
-.mtitle{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:3px;color:#3a5a78;text-transform:uppercase;margin-bottom:22px;text-align:center}
-.mmatch{display:flex;align-items:flex-start;gap:10px;justify-content:center}
-.mmt{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
-.mmn{font-size:13px;font-weight:500;color:#b0c8e0;text-align:center;line-height:1.2}
-.sinput{width:68px;height:68px;border-radius:10px;border:2px solid #2a4e78;background:#070f1c;color:#f0b429;font-family:'Oswald',sans-serif;font-size:32px;font-weight:700;text-align:center;outline:none}
-.sinput:focus{border-color:#f0b429}
-.mvs{font-family:'Oswald',sans-serif;font-size:18px;color:#1e3450;padding:0 2px;margin-top:44px;flex-shrink:0}
-.mact{display:flex;gap:8px;margin-top:22px}
-.btn{flex:1;padding:11px;border-radius:8px;border:none;font-family:'Oswald',sans-serif;font-size:13px;font-weight:500;letter-spacing:1px;cursor:pointer;transition:all .14s}
-.btn-ok{background:#f0b429;color:#080e1c}
-.btn-ok:hover{background:#f5c84a}
-.btn-no{background:#162030;color:#6a8aaa}
-.btn-no:hover{background:#1e2e40}
-.btn-del{background:#5a1010;color:#f09090}
 
 /* ── KO ROUNDS ── */
 .korbar{display:flex;gap:6px;padding:14px 16px;background:#050c1a;border-bottom:1px solid #0e2040;overflow-x:auto;scrollbar-width:none}
