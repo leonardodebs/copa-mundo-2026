@@ -1,9 +1,7 @@
-import { TLA_MAP, GROUPS } from './data.js';
+import { TLA_MAP } from './data.js';
 
-// API key injetada em build-time via vite.config.js define
-const API_KEY = typeof __FOOTBALL_API_KEY__ !== 'undefined' ? __FOOTBALL_API_KEY__ : (import.meta.env.VITE_FOOTBALL_API_KEY || '');
-const BASE    = 'https://api.football-data.org/v4';
-
+// O frontend chama nossa serverless function /api/matches (mesmo domínio,
+// sem CORS). A chave da API fica protegida no servidor.
 const LIVE_STATUSES = new Set(['LIVE','IN_PLAY','PAUSED','HALFTIME','EXTRA_TIME','PENALTY']);
 
 function tlaToId(tla) {
@@ -17,15 +15,14 @@ function groupLetter(apiGroup) {
 }
 
 export async function fetchMatches(currentMatches) {
-  if (!API_KEY) return { groupMatches: null, error: 'no_key' };
-
   try {
-    const res = await fetch(`${BASE}/competitions/WC/matches?season=2026`, {
-      headers: { 'X-Auth-Token': API_KEY },
-    });
+    const res = await fetch('/api/matches');
 
     if (res.status === 429) return { groupMatches: null, error: 'rate_limit' };
-    if (!res.ok)            return { groupMatches: null, error: `http_${res.status}` };
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      return { groupMatches: null, error: j.error || `http_${res.status}` };
+    }
 
     const data = await res.json();
     const updated = { ...currentMatches };
@@ -48,13 +45,16 @@ export async function fetchMatches(currentMatches) {
       const storedHome = updated[k1].h;
       const homeIsHome = storedHome === hId;
 
+      const homeScore = score?.fullTime?.home ?? null;
+      const awayScore = score?.fullTime?.away ?? null;
+
       updated[k1] = {
         ...updated[k1],
-        hs: isDone||isLive ? (homeIsHome ? score?.fullTime?.home : score?.fullTime?.away) : null,
-        as: isDone||isLive ? (homeIsHome ? score?.fullTime?.away : score?.fullTime?.home) : null,
+        hs: (isDone||isLive) && homeScore !== null ? (homeIsHome ? homeScore : awayScore) : updated[k1].hs,
+        as: (isDone||isLive) && awayScore !== null ? (homeIsHome ? awayScore : homeScore) : updated[k1].as,
         status : m.status,
         live   : isLive,
-        date   : m.utcDate,
+        date   : m.utcDate || updated[k1].date,
         apiId  : m.id,
       };
     });
@@ -65,4 +65,5 @@ export async function fetchMatches(currentMatches) {
   }
 }
 
-export const hasApiKey = () => Boolean(API_KEY);
+// A chave agora vive no servidor; o frontend sempre tenta buscar
+export const hasApiKey = () => true;
