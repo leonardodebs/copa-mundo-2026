@@ -57,6 +57,16 @@ export default function App() {
   }, [gm]);
 
   const hasLive = useMemo(() => Object.values(gm).some(m => m.live), [gm]);
+
+  // Grupos com todos os 6 jogos encerrados — só então o mata-mata revela as seleções
+  const doneGroups = useMemo(() => {
+    const s = new Set();
+    GK.forEach(g => {
+      const ms = Object.values(gm).filter(m => m.g === g);
+      if (ms.length > 0 && ms.every(m => m.hs !== null && m.status === 'FINISHED')) s.add(g);
+    });
+    return s;
+  }, [gm]);
   const champ   = koW[31];
 
   /* ── API FETCH ── */
@@ -284,7 +294,7 @@ export default function App() {
 
         <div className="kogrid">
           {KO_ROUNDS.find(r=>r.id===kr)?.matches.map(idx=>{
-            const [home,away]=getMatchTeams(idx,koW,allS);
+            const [home,away]=getMatchTeams(idx,koW,allS,doneGroups);
             const winner=koW[idx];
             const lbl=
               idx===31?'🏆 FINAL': idx===30?'🥉 3º LUGAR':
