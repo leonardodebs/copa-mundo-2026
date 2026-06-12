@@ -402,6 +402,18 @@ export default function App() {
         </div>
       </>}
 
+      {/* ════ FOOTER ════ */}
+      <footer className="footer">
+        <div className="footer-line">
+          Desenvolvido por <a href="https://github.com/leonardodebs" target="_blank" rel="noreferrer"><b>Leonardo Debs</b></a>
+          <span className="footer-sep">·</span>
+          construído com <b>Claude</b> <span className="footer-ai">✦</span>
+        </div>
+        <div className="footer-sub">
+          Dados: football-data.org · Bandeiras: flag-icons · Copa do Mundo FIFA 2026™
+        </div>
+      </footer>
+
     </div>
   );
 }
