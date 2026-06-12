@@ -147,3 +147,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:1}
 .kocard.live-card{border-color:#22c55e}
 .koslot.pickd{background:rgba(90,140,240,.1);border-left-color:#5a8cf0}
 .kopick{font-size:9px;background:#5a8cf0;color:#fff;border-radius:3px;padding:1px 5px;letter-spacing:1px;margin-left:6px}
+
+/* ── FOOTER ── */
+.footer{margin-top:30px;padding:22px 16px 26px;border-top:1px solid #0e2040;background:#040911;text-align:center}
+.footer-line{font-size:13px;color:#5a7a9a;letter-spacing:.5px}
+.footer-line a{color:#f0b429;text-decoration:none}
+.footer-line a:hover{text-decoration:underline}
+.footer-line b{color:#b0c8e0}
+.footer-sep{margin:0 8px;color:#1e3050}
+.footer-ai{color:#d97757}
+.footer-sub{margin-top:6px;font-size:10px;color:#2a4060;letter-spacing:1px}
