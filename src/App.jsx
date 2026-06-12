@@ -1,143 +1,208 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import {
-  TEAMS, GROUPS, GK, KO_ROUNDS, R32_SRC,
-  initGroupMatches, calcStandings, getSlotTeam, getMatchTeams,
-  KO_SCHEDULE,
-} from './data.js';
-import { fetchMatches, hasApiKey } from './api.js';
+import { TEAMS, GROUPS, GK, initGroupMatches, calcStandings } from './data.js';
+import { fetchMatches } from './api.js';
 
-/* ── FLAG COMPONENT (flag-icons CSS library) ── */
+/* ── FLAG ── */
 function Flag({ code, size = 'md' }) {
+  if (!code) return <span style={{fontSize:'1.2em',opacity:.25,width:32,textAlign:'center',display:'inline-block'}}>?</span>;
   const sz = size === 'sm' ? '1.1em' : size === 'lg' ? '2.2em' : '1.5em';
   return <span className={`fi fi-${code}`} style={{ fontSize: sz, lineHeight: 1 }} />;
 }
 
-/* ── LIVE PULSE DOT ── */
-function LiveDot() {
-  return (
-    <span style={{
-      display:'inline-block',width:7,height:7,borderRadius:'50%',
-      background:'#22c55e',boxShadow:'0 0 6px #22c55e',
-      animation:'pulse 1.5s infinite',marginRight:4,flexShrink:0,
-    }}/>
-  );
-}
-
-/* ── FORMAT DATE ── */
 function fmtDate(iso) {
   if (!iso) return '';
   try {
-    return new Date(iso).toLocaleString('pt-BR',{
-      day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo',
+    return new Date(iso).toLocaleString('pt-BR', {
+      day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo',
     });
-  } catch{ return ''; }
+  } catch { return ''; }
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', timeZone:'America/Sao_Paulo' });
+  } catch { return ''; }
+}
+function sameDayBRT(iso, ref) {
+  if (!iso) return false;
+  const opt = { timeZone:'America/Sao_Paulo' };
+  return new Date(iso).toLocaleDateString('pt-BR', opt) === ref.toLocaleDateString('pt-BR', opt);
 }
 
-/* ════════════════════════════════════════════
-   APP
-════════════════════════════════════════════ */
-export default function App() {
-  const [tab,  setTab]  = useState('grupos');
-  const [ag,   setAg]   = useState('A');
-  const [gm,   setGm]   = useState(initGroupMatches);
-  const [kr,   setKr]   = useState('r32');
-  const [koW,  setKoW]  = useState(() => { const w={}; for(let i=0;i<32;i++) w[i]=null; return w; });
-  const [apiStatus, setApiStatus] = useState('idle'); // idle | loading | ok | error | no_key
-  const [lastSync,  setLastSync]  = useState(null);
-  const timerRef = useRef(null);
+const KO_VIEW = [
+  { id:'LAST_32',        label:'Rodada de 32' },
+  { id:'LAST_16',        label:'Oitavas' },
+  { id:'QUARTER_FINALS', label:'Quartas' },
+  { id:'SEMI_FINALS',    label:'Semifinais' },
+  { id:'FINALS',         label:'Final & 3º' },
+];
+const STAGE_NAMES = {
+  LAST_32:'Rodada de 32', LAST_16:'Oitavas', QUARTER_FINALS:'Quartas',
+  SEMI_FINALS:'Semifinal', THIRD_PLACE:'🥉 3º Lugar', FINAL:'🏆 FINAL',
+};
 
-  /* ── DERIVED ── */
+export default function App() {
+  const [tab, setTab] = useState('grupos');
+  const [ag,  setAg]  = useState('A');
+  const [gm,  setGm]  = useState(initGroupMatches);
+  const [koApi, setKoApi] = useState([]);
+  const [kr,  setKr]  = useState('LAST_32');
+  const [picks, setPicks] = useState({});          // palpites: { [matchId]: 'h'|'a' }
+  const [apiStatus, setApiStatus] = useState('idle');
+  const [lastSync,  setLastSync]  = useState(null);
+  const [now, setNow] = useState(() => new Date());
+  const gmRef = useRef(gm);
+  useEffect(() => { gmRef.current = gm; }, [gm]);
+
+  /* relógio para countdown */
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
   const allS = useMemo(() => {
-    const s={}; GK.forEach(g => s[g]=calcStandings(g,gm)); return s;
+    const s = {}; GK.forEach(g => s[g] = calcStandings(g, gm)); return s;
   }, [gm]);
 
   const { gp, tg } = useMemo(() => {
     const pl = Object.values(gm).filter(m => m.hs !== null);
-    return { gp: pl.length, tg: pl.reduce((a,m) => a+m.hs+m.as, 0) };
+    return { gp: pl.length, tg: pl.reduce((a,m) => a + m.hs + m.as, 0) };
   }, [gm]);
 
-  const hasLive = useMemo(() => Object.values(gm).some(m => m.live), [gm]);
+  const hasLive = useMemo(
+    () => Object.values(gm).some(m => m.live) || koApi.some(m => m.live),
+    [gm, koApi]
+  );
 
-  // Grupos com todos os 6 jogos encerrados — só então o mata-mata revela as seleções
-  const doneGroups = useMemo(() => {
-    const s = new Set();
-    GK.forEach(g => {
-      const ms = Object.values(gm).filter(m => m.g === g);
-      if (ms.length > 0 && ms.every(m => m.hs !== null && m.status === 'FINISHED')) s.add(g);
-    });
-    return s;
-  }, [gm]);
-  const champ   = koW[31];
+  /* ── todos os jogos com data (grupos + mata-mata) ── */
+  const allDated = useMemo(() => {
+    const g = Object.values(gm).filter(m => m.date).map(m => ({
+      key:`g-${m.id}`, date:m.date, h:m.h, a:m.a, hs:m.hs, as:m.as,
+      live:m.live, status:m.status, label:`Grupo ${m.g}`,
+    }));
+    const k = koApi.map(m => ({
+      key:`k-${m.id}`, date:m.date, h:m.h, a:m.a, hs:m.hs, as:m.as,
+      live:m.live, status:m.status, label:STAGE_NAMES[m.stage] || m.stage,
+    }));
+    return [...g, ...k].sort((a,b) => new Date(a.date) - new Date(b.date));
+  }, [gm, koApi]);
 
-  /* ── API FETCH ── */
+  const todayMatches = useMemo(
+    () => allDated.filter(m => sameDayBRT(m.date, now)),
+    [allDated, now]
+  );
+  const nextMatch = useMemo(
+    () => allDated.find(m => new Date(m.date) > now && m.status !== 'FINISHED' && !m.live),
+    [allDated, now]
+  );
+  const countdown = useMemo(() => {
+    if (!nextMatch) return null;
+    let s = Math.max(0, Math.floor((new Date(nextMatch.date) - now) / 1000));
+    const d = Math.floor(s/86400); s %= 86400;
+    const h = Math.floor(s/3600);  s %= 3600;
+    const m = Math.floor(s/60);    s %= 60;
+    return d > 0 ? `${d}d ${h}h ${m}m` : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }, [nextMatch, now]);
+
+  /* ── campeão (direto da API) ── */
+  const finalMatch = koApi.find(m => m.stage === 'FINAL');
+  const champ = useMemo(() => {
+    if (!finalMatch || finalMatch.status !== 'FINISHED') return null;
+    if (finalMatch.winner === 'HOME_TEAM') return finalMatch.h;
+    if (finalMatch.winner === 'AWAY_TEAM') return finalMatch.a;
+    if (finalMatch.pen) return finalMatch.pen.home > finalMatch.pen.away ? finalMatch.h : finalMatch.a;
+    return null;
+  }, [finalMatch]);
+
+  /* ── fetch automático ── */
   const doFetch = useCallback(async () => {
-    if (!hasApiKey()) { setApiStatus('no_key'); return; }
     setApiStatus('loading');
-    const { groupMatches, error } = await fetchMatches(gm);
+    const { groupMatches, koMatches, error } = await fetchMatches(gmRef.current);
     if (error) {
-      setApiStatus(error === 'no_key' ? 'no_key' : 'error');
+      setApiStatus('error');
     } else {
       setGm(groupMatches);
+      setKoApi(koMatches);
       setApiStatus('ok');
       setLastSync(new Date());
     }
-  }, [gm]);
+  }, []);
 
-  /* Auto-fetch: a cada 60s durante jogos ao vivo, 5min caso contrário */
   useEffect(() => {
     doFetch();
     const interval = hasLive ? 60_000 : 300_000;
-    timerRef.current = setInterval(doFetch, interval);
-    return () => clearInterval(timerRef.current);
-  }, [hasLive]); // eslint-disable-line
+    const t = setInterval(doFetch, interval);
+    return () => clearInterval(t);
+  }, [hasLive, doFetch]);
 
-  const advance = useCallback((idx, team) => {
-    if (!team || typeof team === 'object') return;
-    setKoW(p => ({ ...p, [idx]: team }));
+  const togglePick = useCallback((id, side) => {
+    setPicks(p => ({ ...p, [id]: p[id] === side ? null : side }));
   }, []);
 
   /* ════ RENDER ════ */
   return (
     <div className="wc">
 
-      {/* ── HEADER ── */}
       <header className="hdr">
         <div className="hdr-badge">⚽ FIFA World Cup 2026</div>
         <h1 className="hdr-title">Copa do <em>Mundo</em> 2026</h1>
         <p className="hdr-sub">11 Jun – 19 Jul · 48 Seleções · 104 Partidas</p>
         <div className="hdr-hosts">
-          <div className="hdr-host"><Flag code="us" size="sm"/> EUA (11 cidades)</div>
-          <div className="hdr-host"><Flag code="mx" size="sm"/> México (3 cidades)</div>
-          <div className="hdr-host"><Flag code="ca" size="sm"/> Canadá (2 cidades)</div>
+          <div className="hdr-host"><Flag code="us" size="sm"/> EUA</div>
+          <div className="hdr-host"><Flag code="mx" size="sm"/> México</div>
+          <div className="hdr-host"><Flag code="ca" size="sm"/> Canadá</div>
         </div>
         <div className="hdr-api">
           <span className={`dot${apiStatus==='ok'||hasLive?' live':''}`}/>
-          {apiStatus==='ok'   && `Atualizado ${lastSync?.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
+          {apiStatus==='ok'      && `Atualizado ${lastSync?.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`}
           {apiStatus==='loading' && 'Atualizando...'}
-          {apiStatus==='error'   && 'API indisponível · usando calendário local'}
-          {apiStatus==='no_key'  && 'Sem chave de API · resultados manuais'}
+          {apiStatus==='error'   && 'API indisponível · tentando novamente'}
           {apiStatus==='idle'    && 'Iniciando...'}
-          {hasLive && <><LiveDot/><strong style={{color:'#22c55e'}}>AO VIVO</strong></>}
+          {hasLive && <strong style={{color:'#22c55e',marginLeft:6}}>● AO VIVO</strong>}
         </div>
       </header>
 
-      {/* ── API KEY BANNER ── */}
-      {apiStatus==='no_key' && (
-        <div className="api-banner">
-          ⚙️ Para resultados ao vivo a partir de 11/jun, adicione sua chave gratuita em{' '}
-          <a href="https://www.football-data.org/client/register" target="_blank" rel="noreferrer">
-            football-data.org
-          </a>
-          {' '}como variável <code>VITE_FOOTBALL_API_KEY</code> no Vercel.
+      {/* ════ JOGOS DE HOJE + COUNTDOWN ════ */}
+      {(todayMatches.length > 0 || nextMatch) && (
+        <div className="today">
+          <div className="today-head">
+            <span className="today-title">📅 Jogos de Hoje</span>
+            {nextMatch && countdown && (
+              <span className="today-count">
+                Próximo: <Flag code={TEAMS[nextMatch.h]?.f} size="sm"/> {TEAMS[nextMatch.h]?.s ?? '?'} × {TEAMS[nextMatch.a]?.s ?? '?'} <Flag code={TEAMS[nextMatch.a]?.f} size="sm"/>
+                <strong className="today-timer">⏱ {countdown}</strong>
+              </span>
+            )}
+          </div>
+          {todayMatches.length > 0 && (
+            <div className="today-row">
+              {todayMatches.map(m => {
+                const h = TEAMS[m.h], a = TEAMS[m.a];
+                const done = m.status === 'FINISHED';
+                return (
+                  <div key={m.key} className={`today-chip${m.live?' live':''}`}>
+                    <span className="today-lbl">{m.label}</span>
+                    <div className="today-teams">
+                      <Flag code={h?.f} size="sm"/> <b>{h?.s ?? '?'}</b>
+                      <span className={`today-score${m.live?' live':''}${done?' done':''}`}>
+                        {(m.hs !== null && m.hs !== undefined) ? `${m.hs}–${m.as}` : fmtTime(m.date)}
+                      </span>
+                      <b>{a?.s ?? '?'}</b> <Flag code={a?.f} size="sm"/>
+                    </div>
+                    {m.live && <span className="today-live">AO VIVO</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── STATS BAR ── */}
       <div className="stats">
         {[
           ['48','Seleções'],['12','Grupos'],['104','Partidas'],
           [gp,'Jogados'],[tg,'Gols'],
-          champ ? [TEAMS[champ]?.s??'–','Campeão 🏆'] : ['–','Campeão'],
+          champ ? [TEAMS[champ]?.s ?? '–','Campeão 🏆'] : ['–','Campeão'],
         ].map(([v,l],i)=>(
           <div className="stat" key={i}>
             <div className="stat-v">{v}</div>
@@ -146,14 +211,9 @@ export default function App() {
         ))}
       </div>
 
-      {/* ── MAIN TABS ── */}
       <div className="tabs">
-        <button className={`tab${tab==='grupos'?' on':''}`} onClick={()=>setTab('grupos')}>
-          ⚽ Fase de Grupos
-        </button>
-        <button className={`tab${tab==='matamat'?' on':''}`} onClick={()=>setTab('matamat')}>
-          🏆 Mata-Mata
-        </button>
+        <button className={`tab${tab==='grupos'?' on':''}`} onClick={()=>setTab('grupos')}>⚽ Fase de Grupos</button>
+        <button className={`tab${tab==='matamat'?' on':''}`} onClick={()=>setTab('matamat')}>🏆 Mata-Mata</button>
       </div>
 
       {/* ════ GRUPOS ════ */}
@@ -166,8 +226,6 @@ export default function App() {
 
         <div className="content">
           <div className="gview">
-
-            {/* STANDINGS */}
             <div className="card">
               <div className="ctitle">📊 Classificação — Grupo {ag}</div>
               <table className="sttbl">
@@ -192,9 +250,7 @@ export default function App() {
                         </td>
                         <td>{st.p}</td><td>{st.w}</td><td>{st.d}</td><td>{st.l}</td>
                         <td>{st.gf}</td><td>{st.ga}</td>
-                        <td style={{color:gd>0?'#5ae080':gd<0?'#e06060':'inherit'}}>
-                          {gd>0?'+'+gd:gd}
-                        </td>
+                        <td style={{color:gd>0?'#5ae080':gd<0?'#e06060':'inherit'}}>{gd>0?'+'+gd:gd}</td>
                         <td>{st.pts}</td>
                       </tr>
                     );
@@ -204,21 +260,14 @@ export default function App() {
               <div className="q-hint">🟡 Top 2 classificados · 3os melhores também podem avançar</div>
             </div>
 
-            {/* MATCHES */}
             <div className="card">
-              <div className="ctitle">
-                📅 Jogos — Grupo {ag}
-                {hasApiKey() && (
-                  <button onClick={doFetch} style={{marginLeft:'auto',background:'none',border:'1px solid #1a3050',borderRadius:6,color:'#4a6a8a',cursor:'pointer',padding:'2px 8px',fontSize:10,letterSpacing:1}}>
-                    ↻ Atualizar
-                  </button>
-                )}
-              </div>
-              {Object.values(gm).filter(m=>m.g===ag).sort((a,b)=>!a.date?1:!b.date?-1:new Date(a.date)-new Date(b.date)).map(m=>{
+              <div className="ctitle">📅 Jogos — Grupo {ag}</div>
+              {Object.values(gm).filter(m=>m.g===ag)
+                .sort((a,b)=>!a.date?1:!b.date?-1:new Date(a.date)-new Date(b.date))
+                .map(m=>{
                 const h=TEAMS[m.h], a=TEAMS[m.a], done=m.hs!==null;
                 return(
-                  <div key={m.id} className={`mitem${m.live?' live-match':''}`}
-                    >
+                  <div key={m.id} className={`mitem${m.live?' live-match':''}`}>
                     {m.live && <span className="live-badge">AO VIVO</span>}
                     <div className="mteam">
                       <Flag code={h.f} size="sm"/>
@@ -238,10 +287,8 @@ export default function App() {
                 );
               })}
             </div>
-
           </div>
 
-          {/* ALL GROUPS OVERVIEW */}
           <div style={{marginTop:20}}>
             <div className="card">
               <div className="ctitle">🌐 Visão Geral — Todos os Grupos</div>
@@ -257,9 +304,7 @@ export default function App() {
                         <div key={tid} className="ov-row" style={{opacity:pos<2?1:.6}}>
                           <Flag code={t.f} size="sm"/>
                           <span style={{fontSize:12,color:pos<2?'#b0c8e0':'#5a7a9a',flex:1}}>{t.s}</span>
-                          <span style={{fontFamily:"'Oswald',sans-serif",fontSize:13,color:pos<2?'#f0b429':'#3a5070'}}>
-                            {st?.pts??0}
-                          </span>
+                          <span style={{fontFamily:"'Oswald',sans-serif",fontSize:13,color:pos<2?'#f0b429':'#3a5070'}}>{st?.pts??0}</span>
                         </div>
                       );
                     })}
@@ -271,17 +316,15 @@ export default function App() {
         </div>
       </>}
 
-      {/* ════ MATA-MATA ════ */}
+      {/* ════ MATA-MATA (100% via API) ════ */}
       {tab==='matamat' && <>
         <div className="korbar">
-          {KO_ROUNDS.map(r=>(
-            <button key={r.id} className={`krbtn${kr===r.id?' on':''}`} onClick={()=>setKr(r.id)}>
-              {r.label}
-            </button>
+          {KO_VIEW.map(r=>(
+            <button key={r.id} className={`krbtn${kr===r.id?' on':''}`} onClick={()=>setKr(r.id)}>{r.label}</button>
           ))}
         </div>
 
-        {kr==='final' && champ && (
+        {kr==='FINALS' && champ && (
           <div className="champ">
             <div className="champl">🏆 Campeão do Mundo 2026</div>
             <div style={{fontSize:56}}>🏆</div>
@@ -293,62 +336,71 @@ export default function App() {
         )}
 
         <div className="kogrid">
-          {KO_ROUNDS.find(r=>r.id===kr)?.matches.map(idx=>{
-            const [home,away]=getMatchTeams(idx,koW,allS,doneGroups);
-            const winner=koW[idx];
-            const lbl=
-              idx===31?'🏆 FINAL': idx===30?'🥉 3º LUGAR':
-              idx<16 ?`32-avos · Jogo ${idx+1}`:
-              idx<24 ?`Oitavas · Jogo ${idx-15}`:
-              idx<28 ?`Quartas · Jogo ${idx-23}`:
-              `Semifinal ${idx-27}`;
+          {koApi
+            .filter(m => kr==='FINALS' ? (m.stage==='FINAL'||m.stage==='THIRD_PLACE') : m.stage===kr)
+            .sort((a,b)=> kr==='FINALS'
+              ? (a.stage==='FINAL'?-1:1)
+              : new Date(a.date)-new Date(b.date))
+            .map((m, i) => {
+              const h = TEAMS[m.h], a = TEAMS[m.a];
+              const decided = m.status === 'FINISHED' && m.winner;
+              const apiWin =
+                m.winner === 'HOME_TEAM' ? 'h' :
+                m.winner === 'AWAY_TEAM' ? 'a' :
+                (m.pen ? (m.pen.home > m.pen.away ? 'h' : 'a') : null);
+              const pick = picks[m.id];
+              const lbl = m.stage==='FINAL' ? '🏆 FINAL'
+                : m.stage==='THIRD_PLACE' ? '🥉 3º LUGAR'
+                : `${STAGE_NAMES[m.stage]} · Jogo ${i+1}`;
 
-            const Slot=({team})=>{
-              const isW=winner!=null&&team===winner;
-              const isL=winner&&team!==winner&&team&&typeof team!=='object';
-              const isLabel=team&&typeof team==='object'&&team.lbl;
-              const td=team&&typeof team==='string'?TEAMS[team]:null;
-              const nd=!team||typeof team==='object';
-              return(
-                <div className={`koslot${isW?' win':''}${isL?' lose':''}${nd?' nd':''}`}
-                  onClick={()=>td&&advance(idx,team)}>
-                  {td ? <Flag code={td.f}/> :
-                   isLabel ? <span style={{fontSize:'1.2em',opacity:.4}}>🏁</span> :
-                   <span style={{fontSize:'1.2em',opacity:.2}}>?</span>}
-                  {td?
-                    <span className="koname">{td.n}</span>:
-                    isLabel?<span className="koname tbd">{team.lbl}</span>:
-                    <span className="koname tbd">A definir</span>}
-                  {isW && <span className="kotick">✓</span>}
+              const Slot = ({ side }) => {
+                const team = side==='h' ? m.h : m.a;
+                const td   = side==='h' ? h : a;
+                const score= side==='h' ? m.hs : m.as;
+                const isWin   = decided && apiWin === side;
+                const isLose  = decided && apiWin && apiWin !== side;
+                const isPick  = !decided && pick === side;
+                const canPick = !decided && team;
+                return (
+                  <div
+                    className={`koslot${isWin?' win':''}${isLose?' lose':''}${isPick?' pickd':''}${!canPick?' nd':''}`}
+                    onClick={() => canPick && togglePick(m.id, side)}>
+                    <Flag code={td?.f}/>
+                    {td
+                      ? <span className="koname">{td.n}</span>
+                      : <span className="koname tbd">A definir</span>}
+                    {(score !== null && score !== undefined) &&
+                      <span className={`koscore${m.live?' live':''}`}>{score}{m.pen ? ` (${side==='h'?m.pen.home:m.pen.away})` : ''}</span>}
+                    {isWin  && <span className="kotick">✓</span>}
+                    {isPick && <span className="kopick">palpite</span>}
+                  </div>
+                );
+              };
+
+              return (
+                <div key={m.id} className={`kocard${m.live?' live-card':''}`}>
+                  <div className="kochdr">
+                    {lbl}
+                    {m.live && <span className="live-badge" style={{position:'static',marginLeft:8}}>AO VIVO</span>}
+                  </div>
+                  <Slot side="h"/>
+                  <Slot side="a"/>
+                  <div className="kofoot">📅 {fmtDate(m.date)} BRT</div>
                 </div>
               );
-            };
-
-            return(
-              <div key={idx} className="kocard">
-                <div className="kochdr">{lbl}</div>
-                <Slot team={home}/>
-                <Slot team={away}/>
-                {KO_SCHEDULE[idx] && (
-                  <div style={{padding:'5px 12px 7px',borderTop:'1px solid #0e2040',
-                    display:'flex',alignItems:'center',gap:6,
-                    fontSize:11,color:'#3a5a78',letterSpacing:'0.5px'}}>
-                    <span>📅</span>
-                    <span style={{color:'#4a6a8a'}}>{KO_SCHEDULE[idx].d}</span>
-                    {KO_SCHEDULE[idx].t && <><span style={{color:'#1e3050'}}>·</span><span style={{color:'#3a5a78'}}>{KO_SCHEDULE[idx].t} BRT</span></>}
-                    {KO_SCHEDULE[idx].c && <><span style={{color:'#1e3050'}}>·</span><span style={{color:'#3a5a78',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{KO_SCHEDULE[idx].c}</span></>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+            })}
+          {koApi.length === 0 && (
+            <div style={{gridColumn:'1/-1',textAlign:'center',padding:40,color:'#3a5a78',fontSize:14}}>
+              Carregando confrontos do mata-mata...
+            </div>
+          )}
         </div>
 
         <div className="hint">
-          💡 Clique em uma seleção para avançá-la · Resultados da fase de grupos populam automaticamente
+          💡 Confrontos e resultados 100% automáticos via FIFA/football-data ·
+          Clique em uma seleção antes do jogo para registrar seu palpite
         </div>
       </>}
-
 
     </div>
   );
