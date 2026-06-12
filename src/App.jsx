@@ -40,7 +40,6 @@ export default function App() {
   const [tab,  setTab]  = useState('grupos');
   const [ag,   setAg]   = useState('A');
   const [gm,   setGm]   = useState(initGroupMatches);
-  const [em,   setEm]   = useState(null);
   const [kr,   setKr]   = useState('r32');
   const [koW,  setKoW]  = useState(() => { const w={}; for(let i=0;i<32;i++) w[i]=null; return w; });
   const [apiStatus, setApiStatus] = useState('idle'); // idle | loading | ok | error | no_key
@@ -81,21 +80,6 @@ export default function App() {
     timerRef.current = setInterval(doFetch, interval);
     return () => clearInterval(timerRef.current);
   }, [hasLive]); // eslint-disable-line
-
-  /* ── SCORE HANDLERS ── */
-  const saveScore = useCallback(() => {
-    if (!em) return;
-    const hs = parseInt(em.hs, 10), as = parseInt(em.as, 10);
-    if (isNaN(hs)||isNaN(as)||hs<0||as<0) return;
-    setGm(p => ({ ...p, [em.id]: { ...p[em.id], hs, as } }));
-    setEm(null);
-  }, [em]);
-
-  const clearScore = useCallback(() => {
-    if (!em) return;
-    setGm(p => ({ ...p, [em.id]: { ...p[em.id], hs:null, as:null } }));
-    setEm(null);
-  }, [em]);
 
   const advance = useCallback((idx, team) => {
     if (!team || typeof team === 'object') return;
@@ -224,7 +208,7 @@ export default function App() {
                 const h=TEAMS[m.h], a=TEAMS[m.a], done=m.hs!==null;
                 return(
                   <div key={m.id} className={`mitem${m.live?' live-match':''}`}
-                    onClick={()=>setEm({id:m.id,hs:m.hs??'',as:m.as??''})}>
+                    >
                     {m.live && <span className="live-badge">AO VIVO</span>}
                     <div className="mteam">
                       <Flag code={h.f} size="sm"/>
@@ -355,45 +339,6 @@ export default function App() {
         </div>
       </>}
 
-      {/* ════ SCORE MODAL ════ */}
-      {em && (() => {
-        const m=gm[em.id]; if(!m) return null;
-        const h=TEAMS[m.h], a=TEAMS[m.a];
-        return(
-          <div className="ov" onClick={()=>setEm(null)}>
-            <div className="modal" onClick={e=>e.stopPropagation()}>
-              <div className="mtitle">✏️ EDITAR PLACAR</div>
-              <div className="mmatch">
-                <div className="mmt">
-                  <Flag code={h.f} size="lg"/>
-                  <div className="mmn">{h.n}</div>
-                  <input className="sinput" type="number" min="0" max="30"
-                    value={em.hs}
-                    onChange={e=>setEm(p=>({...p,hs:e.target.value}))}
-                    onKeyDown={e=>{if(e.key==='Enter')saveScore();if(e.key==='Escape')setEm(null);}}
-                    autoFocus
-                  />
-                </div>
-                <div className="mvs">×</div>
-                <div className="mmt">
-                  <Flag code={a.f} size="lg"/>
-                  <div className="mmn">{a.n}</div>
-                  <input className="sinput" type="number" min="0" max="30"
-                    value={em.as}
-                    onChange={e=>setEm(p=>({...p,as:e.target.value}))}
-                    onKeyDown={e=>{if(e.key==='Enter')saveScore();if(e.key==='Escape')setEm(null);}}
-                  />
-                </div>
-              </div>
-              <div className="mact">
-                <button className="btn btn-no" onClick={()=>setEm(null)}>Cancelar</button>
-                {m.hs!==null && <button className="btn btn-del" onClick={clearScore}>Limpar</button>}
-                <button className="btn btn-ok" onClick={saveScore}>Salvar</button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
 
     </div>
   );
