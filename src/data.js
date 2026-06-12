@@ -200,15 +200,22 @@ export function calcStandings(g,matches){
   );
 }
 
-export function getSlotTeam(src,allS){
+export function getSlotTeam(src,allS,doneGroups){
   if(!src) return null;
   if(src.lbl) return src;
-  if(src.g!==undefined){const s=allS[src.g];return s&&s[src.p]?s[src.p].id:null;}
+  if(src.g!==undefined){
+    // Só revela a seleção quando TODOS os jogos do grupo terminaram.
+    // Antes disso, mostra a vaga ("1º Grupo A") para não exibir confrontos falsos.
+    if(!doneGroups || !doneGroups.has(src.g)){
+      return {lbl:`${src.p+1}º Grupo ${src.g}`};
+    }
+    const s=allS[src.g];return s&&s[src.p]?s[src.p].id:null;
+  }
   return null;
 }
 
-export function getMatchTeams(idx,koW,allS){
-  if(idx<16){const[s0,s1]=R32_SRC[idx];return[getSlotTeam(s0,allS),getSlotTeam(s1,allS)];}
+export function getMatchTeams(idx,koW,allS,doneGroups){
+  if(idx<16){const[s0,s1]=R32_SRC[idx];return[getSlotTeam(s0,allS,doneGroups),getSlotTeam(s1,allS,doneGroups)];}
   if(idx<24){const b=(idx-16)*2;return[koW[b]||null,koW[b+1]||null];}
   if(idx<28){const b=(idx-24)*2+16;return[koW[b]||null,koW[b+1]||null];}
   if(idx<30){const b=(idx-28)*2+24;return[koW[b]||null,koW[b+1]||null];}
