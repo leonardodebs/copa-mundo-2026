@@ -65,6 +65,16 @@ export default function App() {
     const s = {}; GK.forEach(g => s[g] = calcStandings(g, gm)); return s;
   }, [gm]);
 
+  // Grupos com todos os 6 jogos encerrados (FINISHED)
+  const doneGroups = useMemo(() => {
+    const s = new Set();
+    GK.forEach(g => {
+      const ms = Object.values(gm).filter(m => m.g === g);
+      if (ms.length > 0 && ms.every(m => m.status === 'FINISHED')) s.add(g);
+    });
+    return s;
+  }, [gm]);
+
   const { gp, tg } = useMemo(() => {
     const pl = Object.values(gm).filter(m => m.hs !== null);
     return { gp: pl.length, tg: pl.reduce((a,m) => a + m.hs + m.as, 0) };
