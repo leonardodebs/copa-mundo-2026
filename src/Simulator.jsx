@@ -41,12 +41,12 @@ function getTeams(idx, picks, allS, thirds) {
     }
     return [resolveSlot(s0, allS), resolveSlot(s1, allS)];
   }
-  if (idx < 24) { const b=(idx-16)*2;    return [getWinner(b,picks,allS),   getWinner(b+1,picks,allS)];   }
-  if (idx < 28) { const b=(idx-24)*2+16; return [getWinner(b,picks,allS),   getWinner(b+1,picks,allS)];   }
-  if (idx===28)  return [getWinner(24,picks,allS), getWinner(25,picks,allS)];
-  if (idx===29)  return [getWinner(26,picks,allS), getWinner(27,picks,allS)];
-  if (idx===30)  return [getLoser(28,picks,allS),  getLoser(29,picks,allS)];   // 3º lugar
-  if (idx===31)  return [getWinner(28,picks,allS), getWinner(29,picks,allS)];  // Final
+  if (idx < 24) { const b=(idx-16)*2;    return [getWinner(b,picks,allS,thirds),   getWinner(b+1,picks,allS,thirds)];   }
+  if (idx < 28) { const b=(idx-24)*2+16; return [getWinner(b,picks,allS,thirds),   getWinner(b+1,picks,allS,thirds)];   }
+  if (idx===28)  return [getWinner(24,picks,allS,thirds), getWinner(25,picks,allS,thirds)];
+  if (idx===29)  return [getWinner(26,picks,allS,thirds), getWinner(27,picks,allS,thirds)];
+  if (idx===30)  return [getLoser(28,picks,allS,thirds),  getLoser(29,picks,allS,thirds)];   // 3º lugar
+  if (idx===31)  return [getWinner(28,picks,allS,thirds), getWinner(29,picks,allS,thirds)];  // Final
   return [null, null];
 }
 
