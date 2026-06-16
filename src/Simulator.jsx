@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TEAMS, R32_SRC } from './data.js';
+import { TEAMS, GK, R32_SRC } from './data.js';
 
 // ─── Bracket: 32 matches ───────────────────────────────────────────────────
 // 0-15  → Rodada de 32
@@ -31,9 +31,14 @@ function resolveSlot(src, allS) {
 }
 
 // Retorna [home, away] para qualquer posição do bracket
-function getTeams(idx, picks, allS) {
+function getTeams(idx, picks, allS, thirds) {
   if (idx < 16) {
     const [s0, s1] = R32_SRC[idx];
+    // Jogos 13-16 (idx 12-15): vagas dos melhores 3ºs colocados
+    if (s0.lbl || s1.lbl) {
+      const pos = (idx - 12) * 2;
+      return [thirds?.[pos] ?? null, thirds?.[pos+1] ?? null];
+    }
     return [resolveSlot(s0, allS), resolveSlot(s1, allS)];
   }
   if (idx < 24) { const b=(idx-16)*2;    return [getWinner(b,picks,allS),   getWinner(b+1,picks,allS)];   }
@@ -45,15 +50,15 @@ function getTeams(idx, picks, allS) {
   return [null, null];
 }
 
-function getWinner(idx, picks, allS) {
-  const [h, a] = getTeams(idx, picks, allS);
+function getWinner(idx, picks, allS, thirds) {
+  const [h, a] = getTeams(idx, picks, allS, thirds);
   const p = picks[idx];
   if (!p) return null;
   return p === 'h' ? h : a;
 }
 
-function getLoser(idx, picks, allS) {
-  const [h, a] = getTeams(idx, picks, allS);
+function getLoser(idx, picks, allS, thirds) {
+  const [h, a] = getTeams(idx, picks, allS, thirds);
   const p = picks[idx];
   if (!p) return null;
   return p === 'h' ? a : h;
@@ -85,9 +90,9 @@ function Slot({ teamId, side, isWinner, isLoser, onClick }) {
 }
 
 // ─── Card de jogo ───────────────────────────────────────────────────────────
-function MatchCard({ idx, picks, allS, label, onPick }) {
-  const [h, a] = getTeams(idx, picks, allS);
-  const winner  = getWinner(idx, picks, allS);
+function MatchCard({ idx, picks, allS, thirds, label, onPick }) {
+  const [h, a] = getTeams(idx, picks, allS, thirds);
+  const winner  = getWinner(idx, picks, allS, thirds);
 
   const handlePick = (side) => {
     const team = side==='h' ? h : a;
@@ -110,8 +115,8 @@ function MatchCard({ idx, picks, allS, label, onPick }) {
 }
 
 // ─── Barra de progresso ─────────────────────────────────────────────────────
-function ProgressBar({ picks, allS }) {
-  const champ = getWinner(31, picks, allS);
+function ProgressBar({ picks, allS, thirds }) {
+  const champ = getWinner(31, picks, allS, thirds);
   const rounds = SIM_ROUNDS.map(r => ({
     label: r.label,
     done: r.indices.filter(i => picks[i]).length,
@@ -142,6 +147,18 @@ export default function Simulator({ allS }) {
   const [picks, setPicks] = useState({});
   const [round, setRound] = useState('r32');
 
+  // Ranking dos melhores 3ºs colocados (top 8 entre os 12 grupos)
+  const thirds = (() => {
+    const list = GK.map(g => {
+      const s = allS[g];
+      if (!s || !s[2]) return null;
+      const t = s[2];
+      return { id: t.id, pts: t.pts, gd: t.gf - t.ga, gf: t.gf };
+    }).filter(Boolean);
+    list.sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
+    return list.slice(0,8).map(t => t.id);
+  })();
+
   // Limpa tudo que dependia do resultado do match idx
   const clearDownstream = (idx, next) => {
     const deps = idx < 16  ? [16 + Math.floor(idx/2)]
@@ -168,8 +185,8 @@ export default function Simulator({ allS }) {
 
   const reset = () => setPicks({});
 
-  const champ    = getWinner(31, picks, allS);
-  const terceiro = getWinner(30, picks, allS);
+  const champ    = getWinner(31, picks, allS, thirds);
+  const terceiro = getWinner(30, picks, allS, thirds);
   const totalPicks = Object.values(picks).filter(Boolean).length;
   const currentRound = SIM_ROUNDS.find(r => r.id === round);
 
@@ -187,7 +204,7 @@ export default function Simulator({ allS }) {
       </div>
 
       {/* Progresso */}
-      <ProgressBar picks={picks} allS={allS}/>
+      <ProgressBar picks={picks} allS={allS} thirds={thirds}/>
 
       {/* Banner do campeão */}
       {champ && (
@@ -235,6 +252,7 @@ export default function Simulator({ allS }) {
               idx={idx}
               picks={picks}
               allS={allS}
+              thirds={thirds}
               label={lbl}
               onPick={onPick}
             />
