@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { TEAMS, GROUPS, GK, initGroupMatches, calcStandings } from './data.js';
 import { fetchMatches } from './api.js';
+import Simulator from './Simulator.jsx';
 
 /* ── FLAG ── */
 function Flag({ code, size = 'md' }) {
@@ -214,6 +215,7 @@ export default function App() {
       <div className="tabs">
         <button className={`tab${tab==='grupos'?' on':''}`} onClick={()=>setTab('grupos')}>⚽ Fase de Grupos</button>
         <button className={`tab${tab==='matamat'?' on':''}`} onClick={()=>setTab('matamat')}>🏆 Mata-Mata</button>
+        <button className={`tab${tab==='simulador'?' on':''}`} onClick={()=>setTab('simulador')}>🎯 Simulador</button>
       </div>
 
       {/* ════ GRUPOS ════ */}
@@ -401,6 +403,9 @@ export default function App() {
           Clique em uma seleção antes do jogo para registrar seu palpite
         </div>
       </>}
+
+      {/* ════ SIMULADOR ════ */}
+      {tab==='simulador' && <Simulator allS={allS} doneGroups={doneGroups}/>}
 
       {/* ════ FOOTER ════ */}
       <footer className="footer">
