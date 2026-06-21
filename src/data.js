@@ -142,17 +142,32 @@ export const TLA_MAP = {
   RSA:"rsa",URY:"uru",CZE:"cze",
 };
 
+// Chaveamento oficial FIFA Copa 2026 — Rodada de 32
+// Fonte: Regulamento FIFA pág.80+ e análise do bracket oficial
+// Cruzamentos fixos: C↔F (1º vs 2º e vice-versa), J↔H (idem)
+// Runners-up entre si: A↔B, D↔G, E↔I, K↔L
+// 8 primeiros (A,L,B,K,E,I,D,G) enfrentam os 8 melhores 3ºs colocados
 export const R32_SRC = [
-  [{g:"A",p:0},{g:"B",p:1}],[{g:"C",p:0},{g:"D",p:1}],
-  [{g:"E",p:0},{g:"F",p:1}],[{g:"G",p:0},{g:"H",p:1}],
-  [{g:"I",p:0},{g:"J",p:1}],[{g:"K",p:0},{g:"L",p:1}],
-  [{g:"B",p:0},{g:"A",p:1}],[{g:"D",p:0},{g:"C",p:1}],
-  [{g:"F",p:0},{g:"E",p:1}],[{g:"H",p:0},{g:"G",p:1}],
-  [{g:"J",p:0},{g:"I",p:1}],[{g:"L",p:0},{g:"K",p:1}],
-  [{lbl:"3º A/C/E"},{lbl:"3º G/I/K"}],
-  [{lbl:"3º B/D/F"},{lbl:"3º H/J/L"}],
-  [{lbl:"3º A/B/C"},{lbl:"3º D/E/F"}],
-  [{lbl:"3º G/H/I"},{lbl:"3º J/K/L"}],
+  // ── QUADRANTE 1 → Quartas 1 → Semi 1 ──────────────────────────
+  [{g:"C",p:0},{g:"F",p:1}],  // Jogo 1:  1ºC  vs 2ºF
+  [{g:"E",p:1},{g:"I",p:1}],  // Jogo 2:  2ºE  vs 2ºI
+  [{g:"A",p:0},{lbl:"3º"}],   // Jogo 3:  1ºA  vs melhor 3º
+  [{g:"L",p:0},{lbl:"3º"}],   // Jogo 4:  1ºL  vs melhor 3º
+  // ── QUADRANTE 2 → Quartas 2 → Semi 1 ──────────────────────────
+  [{g:"J",p:0},{g:"H",p:1}],  // Jogo 5:  1ºJ  vs 2ºH
+  [{g:"D",p:1},{g:"G",p:1}],  // Jogo 6:  2ºD  vs 2ºG
+  [{g:"B",p:0},{lbl:"3º"}],   // Jogo 7:  1ºB  vs melhor 3º
+  [{g:"K",p:0},{lbl:"3º"}],   // Jogo 8:  1ºK  vs melhor 3º
+  // ── QUADRANTE 3 → Quartas 3 → Semi 2 ──────────────────────────
+  [{g:"F",p:0},{g:"C",p:1}],  // Jogo 9:  1ºF  vs 2ºC
+  [{g:"A",p:1},{g:"B",p:1}],  // Jogo 10: 2ºA  vs 2ºB
+  [{g:"E",p:0},{lbl:"3º"}],   // Jogo 11: 1ºE  vs melhor 3º
+  [{g:"I",p:0},{lbl:"3º"}],   // Jogo 12: 1ºI  vs melhor 3º
+  // ── QUADRANTE 4 → Quartas 4 → Semi 2 ──────────────────────────
+  [{g:"H",p:0},{g:"J",p:1}],  // Jogo 13: 1ºH  vs 2ºJ
+  [{g:"K",p:1},{g:"L",p:1}],  // Jogo 14: 2ºK  vs 2ºL
+  [{g:"D",p:0},{lbl:"3º"}],   // Jogo 15: 1ºD  vs melhor 3º
+  [{g:"G",p:0},{lbl:"3º"}],   // Jogo 16: 1ºG  vs melhor 3º
 ];
 
 export const KO_ROUNDS = [
