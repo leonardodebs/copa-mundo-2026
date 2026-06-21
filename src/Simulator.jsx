@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { TEAMS, GK, R32_SRC } from './data.js';
 
 // ─── Bracket: 32 matches ───────────────────────────────────────────────────
@@ -31,13 +31,18 @@ function resolveSlot(src, allS) {
 }
 
 // Retorna [home, away] para qualquer posição do bracket
+// Novos índices dos slots com 3ºs colocados no bracket oficial FIFA
+const LBL_MATCH_INDICES = [2, 3, 6, 7, 10, 11, 14, 15];
+
 function getTeams(idx, picks, allS, thirds) {
   if (idx < 16) {
     const [s0, s1] = R32_SRC[idx];
-    // Jogos 13-16 (idx 12-15): vagas dos melhores 3ºs colocados
+    // Slots com 3ºs colocados: índices 2,3,6,7,10,11,14,15
     if (s0.lbl || s1.lbl) {
-      const pos = (idx - 12) * 2;
-      return [thirds?.[pos] ?? null, thirds?.[pos+1] ?? null];
+      const pos = LBL_MATCH_INDICES.indexOf(idx); // 0-7
+      const third = thirds?.[pos] ?? null;
+      // O 3º é sempre o lado do lbl (s1 nos novos slots)
+      return [resolveSlot(s0, allS), third];
     }
     return [resolveSlot(s0, allS), resolveSlot(s1, allS)];
   }
@@ -73,7 +78,7 @@ function Flag({ code }) {
 // ─── Slot clicável ─────────────────────────────────────────────────────────
 function Slot({ teamId, side, isWinner, isLoser, onClick }) {
   const td = teamId ? TEAMS[teamId] : null;
-  const canClick = !!td && !isWinner && !isLoser;
+  const canClick = !!td; // sempre clicável — re-clicar desfaz/troca o palpite
 
   return (
     <div
@@ -107,9 +112,9 @@ function MatchCard({ idx, picks, allS, thirds, label, onPick }) {
         <span>{label}</span>
         {winner && <span className="sim-decided">✓</span>}
       </div>
-      <Slot teamId={h} side="h" isWinner={winner&&winner===h} isLoser={winner&&winner!==h&&!!h} onClick={handlePick}/>
+      <Slot teamId={h} side="h" isWinner={!!(winner&&winner===h)} isLoser={!!(winner&&winner!==h&&h)} onClick={handlePick}/>
       <div className="sim-vs">×</div>
-      <Slot teamId={a} side="a" isWinner={winner&&winner===a} isLoser={winner&&winner!==a&&!!a} onClick={handlePick}/>
+      <Slot teamId={a} side="a" isWinner={!!(winner&&winner===a)} isLoser={!!(winner&&winner!==a&&a)} onClick={handlePick}/>
     </div>
   );
 }
@@ -147,8 +152,9 @@ export default function Simulator({ allS }) {
   const [picks, setPicks] = useState({});
   const [round, setRound] = useState('r32');
 
-  // Ranking dos melhores 3ºs colocados (top 8 entre os 12 grupos)
-  const thirds = (() => {
+  // Ranking dos 8 melhores 3ºs colocados (de 12 grupos)
+  // Critérios FIFA: pontos → saldo de gols → gols marcados
+  const thirds = useMemo(() => {
     const list = GK.map(g => {
       const s = allS[g];
       if (!s || !s[2]) return null;
@@ -157,7 +163,7 @@ export default function Simulator({ allS }) {
     }).filter(Boolean);
     list.sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf);
     return list.slice(0,8).map(t => t.id);
-  })();
+  }, [allS]);
 
   // Limpa tudo que dependia do resultado do match idx
   const clearDownstream = (idx, next) => {
