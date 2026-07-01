@@ -415,7 +415,7 @@ export default function App() {
       </>}
 
       {/* ════ SIMULADOR ════ */}
-      {tab==='simulador' && <Simulator allS={allS} doneGroups={doneGroups}/>}
+      {tab==='simulador' && <Simulator allS={allS} koApi={koApi}/>}
 
       {/* ════ FOOTER ════ */}
       <footer className="footer">
